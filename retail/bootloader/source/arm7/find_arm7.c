@@ -87,39 +87,64 @@ u32* findSwiGetPitchTableOffset(const tNDSHeader* ndsHeader, const module_params
 
 	u32* swiGetPitchTableOffset = NULL;
 	
-	static const std::map<uint, std::set<u32>> donorMap = { 
-		{ 4, { swiGetPitchTableSignature5, swiGetPitchTableSignature1, swiGetPitchTableSignature1Alt1, swiGetPitchTableSignature1Alt2, swiGetPitchTableSignature1Alt3 }},
-		{ 3, { swiGetPitchTableSignature1Alt4, swiGetPitchTableSignature1Alt5, swiGetPitchTableSignature1Alt6, swiGetPitchTableSignature1Alt7, swiGetPitchTableSignature1Alt8, swiGetPitchTableSignature3, swiGetPitchTableSignature3Alt1, swiGetPitchTableSignature3Alt2, swiGetPitchTableSignature3Alt3, swiGetPitchTableSignature3Alt4, swiGetPitchTableSignature3Alt5, swiGetPitchTableSignature3Alt6, swiGetPitchTableSignature3Alt7, swiGetPitchTableSignature3Alt8, swiGetPitchTableSignature3Alt9, swiGetPitchTableSignature3Alt10, swiGetPitchTableSignature4, swiGetPitchTableSignature4Alt1, swiGetPitchTableSignature4Alt2, swiGetPitchTableSignature4Alt3, swiGetPitchTableSignature4Alt4, swiGetPitchTableSignature4Alt5, swiGetPitchTableSignature4Alt6, swiGetPitchTableSignature4Alt7, swiGetPitchTableSignature4Alt8, }},
+	static const std::map<uint, std::map<u32, std::string, bool>> donorMap = { 
+		{ 4, {
+			{swiGetPitchTableSignature5, "swiGetPitchTable call SDK 5 found: ", moduleParams->sdk_version > 0x5000000},
+			{swiGetPitchTableSignature1, "swiGetPitchTable SDK <= 2 call found: ", true},
+			{swiGetPitchTableSignature1Alt1, "swiGetPitchTable SDK <= 2 call alt 1 found: ", true},
+			{swiGetPitchTableSignature1Alt2, "swiGetPitchTable SDK <= 2 call alt 2 found: ", true},
+			{swiGetPitchTableSignature1Alt3, "swiGetPitchTable SDK <= 2 call alt 3 found: ", true}
+		} },
+		{ 3, {
+			{swiGetPitchTableSignature1Alt4, "swiGetPitchTable SDK <= 2 call alt 4 found: ", true},
+			{swiGetPitchTableSignature1Alt5, "swiGetPitchTable SDK <= 2 call alt 5 found: ", true},
+			{swiGetPitchTableSignature1Alt6, "swiGetPitchTable SDK <= 2 call alt 6 found: ", true},
+			{swiGetPitchTableSignature1Alt7, "swiGetPitchTable SDK <= 2 call alt 7 found: ", true},
+			{swiGetPitchTableSignature1Alt8, "swiGetPitchTable SDK <= 2 call alt 8 found: ", true},
+			{swiGetPitchTableSignature3, "swiGetPitchTable SDK 3 call found: ", true},
+			{swiGetPitchTableSignature3Alt1, "swiGetPitchTable SDK 3 call alt 1 found: ", true},
+			{swiGetPitchTableSignature3Alt2, "swiGetPitchTable SDK 3 call alt 2 found: ", true},
+			{swiGetPitchTableSignature3Alt3, "swiGetPitchTable SDK 3 call alt 3 found: ", true},
+			{swiGetPitchTableSignature3Alt4, "swiGetPitchTable SDK 3 call alt 4 found: ", true},
+			{swiGetPitchTableSignature3Alt5, "swiGetPitchTable SDK 3 call alt 5 found: ", true},
+			{swiGetPitchTableSignature3Alt6, "swiGetPitchTable SDK 3 call alt 6 found: ", true},
+			{swiGetPitchTableSignature3Alt7, "swiGetPitchTable SDK 3 call alt 7 found: ", true},
+			{swiGetPitchTableSignature3Alt8, "swiGetPitchTable SDK 3 call alt 8 found: ", true},
+			{swiGetPitchTableSignature3Alt9, "swiGetPitchTable SDK 3 call alt 9 found: ", true},
+			{swiGetPitchTableSignature3Alt10, "swiGetPitchTable SDK 3 call alt 10 found: ", true},
+			{swiGetPitchTableSignature4, "swiGetPitchTable SDK 4 found: ", true},
+			{swiGetPitchTableSignature4Alt1, "swiGetPitchTable SDK 4 call alt 1 found: ", true},
+			{swiGetPitchTableSignature4Alt2, "swiGetPitchTable SDK 4 call alt 2 found: ", true},
+			{swiGetPitchTableSignature4Alt3, "swiGetPitchTable SDK 4 call alt 3 found: ", true},
+			{swiGetPitchTableSignature4Alt4, "swiGetPitchTable SDK 4 call alt 4 found: ", true},
+			{swiGetPitchTableSignature4Alt5, "swiGetPitchTable SDK 4 call alt 5 found: ", true},
+			{swiGetPitchTableSignature4Alt6, "swiGetPitchTable SDK 4 call alt 6 found: ", true},
+			{swiGetPitchTableSignature4Alt7, "swiGetPitchTable SDK 4 call alt 7 found: ", true},
+			{swiGetPitchTableSignature4Alt8, "swiGetPitchTable SDK 4 call alt 8 found: ", true}
+		}},
 	};
 
 	for (auto fourthparameter: donorMap) {
-		for (auto pitch: fourthparameter.second) {
+		for (auto pitchTable: fourthparameter.second) {
+			if (!pitchTable.third)
+				continue;
+
 			swiGetPitchTableOffset = findOffset(
 				(u32*)ndsHeader->arm7destination, 0x00010000,//ndsHeader->arm7binarySize,
-				patch, fourthparameter.first
+				pitchTable.first, fourthparameter.first
 			);
 
 			if (swiGetPitchTableOffset) {
-				dbg_printf("swiGetPitchTable SDK 4 call alt 8 found: ");
+				dbg_printf(pitchTable.second);
+				break;
 			} else {
-				dbg_printf("swiGetPitchTable SDK 4 call alt 8 not found\n");
+				const size_t last_found_idx = pitchTable.second.find_last_of("found: ");
+				dbg_printf(pitchTable.second.replace(last_found_idx, 7, "not found\n"));
 			}
 		}
 
 		if (swiGetPitchTableOffset)
 			break;
-	}
-
-	if (!swiGetPitchTableOffset) {
-		swiGetPitchTableOffset = findOffset(
-			(u32*)ndsHeader->arm7destination, 0x00010000,//ndsHeader->arm7binarySize,
-			swiGetPitchTableSignature4Alt8, 3
-		);
-		if (swiGetPitchTableOffset) {
-			dbg_printf("swiGetPitchTable SDK 4 call alt 8 found: ");
-		} else {
-			dbg_printf("swiGetPitchTable SDK 4 call alt 8 not found\n");
-		}
 	}
 
 	if (swiGetPitchTableOffset) {
